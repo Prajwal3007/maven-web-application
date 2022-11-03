@@ -8,7 +8,7 @@ def mavenHome = tool name: "maven3.8.5"
     
 properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'JobLocalConfiguration', changeReasonComment: ''], pipelineTriggers([pollSCM('* * * * *')])])
 
-    
+try{   
 stage('CheckoutCode'){
 git branch: 'development', credentialsId: '5bccd71d-0f78-4915-b77d-ff9f84457ded',
  url: 'https://github.com/Prajwal3007/maven-web-application.git'
@@ -32,4 +32,36 @@ sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@17
 }
 } 
 */ 
+
+}//try
+
+catch(e){
+current.Buildresult = "Failure"
+}
+finally{
+sendslacknotifications(current.Buildresult)
+}
+
 }//node
+
+def notifyBuild(String buildStatus = 'STARTED') {
+  // build status of null means successful
+  buildStatus =  buildStatus ?: 'SUCCESS'
+
+  // Default values
+  def colorName = 'RED'
+  def colorCode = '#FF0000'
+  def subject = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'"
+  def summary = "${subject} (${env.BUILD_URL})"
+
+  // Override default values based on build status
+  if (buildStatus == 'STARTED') {
+    colorName = 'YELLOW'
+    colorCode = '#FFFF00'
+  } else if (buildStatus == 'SUCCESS) {
+    colorName = 'GREEN'
+    colorCode = '#00FF00'
+  } else {
+    colorName = 'RED'
+    colorCode = '#FF0000'
+  }
