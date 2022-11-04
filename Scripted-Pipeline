@@ -37,10 +37,10 @@ sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@17
 }//try
 
 catch(e){
-current.Buildresult = "Failure"
+currentBuild.result = "Failure"
 }
 finally{
-sendslacknotifications(current.Buildresult)
+sendslacknotifications(currentBuild.result)
 }
 
 }//node
